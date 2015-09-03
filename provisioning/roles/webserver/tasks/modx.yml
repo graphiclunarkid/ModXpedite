@@ -1,0 +1,80 @@
+---
+- name: Install php modules required by modx
+  apt: name={{ item }} state=latest
+  with_items:
+    - php5-gd
+    - php5-curl
+    - php5-imagick
+    - php5-mysql
+
+- name: Tweak apache php.ini for modx
+  ini_file: dest=/etc/php5/apache2/php.ini
+  args:
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - { section: Date, option: date.timezone, value: "{{ ansible_date_time.tz }}" }
+    - { section: PHP, option: magic_quotes_gpc, value: off }
+  notify:
+    - Reload apache
+
+- name: Tweak cli php.ini for modx
+  ini_file: dest=/etc/php5/cli/php.ini
+  args:
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - { section: Date, option: date.timezone, value: "{{ ansible_date_time.tz }}" }
+    - { section: PHP, option: magic_quotes_gpc, value: off }
+
+- name: Clone modx from github
+  git:
+    repo: http://github.com/modxcms/revolution.git
+    dest: "{{ document_root }}"
+
+- name: Copy across modx build files
+  template: src={{ item }}.j2 dest={{ document_root }}/_build/{{ item }}
+  with_items:
+    - build.config.php
+    - build.properties.php
+
+- name: Build modx
+  command: php transport.core.php
+  args:
+    chdir: "{{ document_root }}/_build/"
+
+- name: Copy across modx install config-file
+  template:
+    src: config.xml.j2
+    dest: "{{ document_root }}/setup/config.xml"
+
+- name: Create config.inc.php
+  file: path={{ document_root }}/core/config/config.inc.php
+  args:
+    group: www-data
+    mode: 0775
+    state: touch
+
+- name: Let webserver write to some modx directories
+  file:
+  args:
+    path: "{{ item }}"
+    group: www-data
+    mode: 0775
+    state: directory
+  with_items:
+    - "{{ document_root }}"
+    - "{{ document_root }}/assets"
+    - "{{ document_root }}/assets/components"
+    - "{{ document_root }}/manager"
+    - "{{ document_root }}/connectors"
+    - "{{ document_root }}/core/cache"
+    - "{{ document_root }}/core/components"
+    - "{{ document_root }}/core/packages"
+
+- name: Install modx
+  command: "php -d date.timezone={{ ansible_date_time.tz }} setup/index.php --installmode=new --config=setup/config.xml"
+  args:
+    chdir: "{{ document_root }}"

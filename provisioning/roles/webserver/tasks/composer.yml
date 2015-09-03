@@ -1,0 +1,12 @@
+---
+- name: Install composer
+  shell: curl -sS https://getcomposer.org/installer | php
+  args:
+    chdir: /usr/local/src/
+    creates: composer.phar
+
+- name: Symlink composer into /usr/local/bin
+  file:
+    src: /usr/local/src/composer.phar
+    dest: /usr/local/bin/composer
+    state: link

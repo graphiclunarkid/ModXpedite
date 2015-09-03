@@ -1,0 +1,27 @@
+---
+database_type: mysql
+database_server: localhost
+database: modx
+database_user: root
+database_password: ""
+database_connection_charset: utf8
+database_charset: utf8
+database_collation: utf8_general_ci
+table_prefix: modx_
+https_port: 443
+http_host: localhost
+cache_disabled: 1
+inplace: 1
+unpacked: 1
+language: en
+cmsadmin: admin
+cmspassword: password
+cmsadminemail: root@localhost
+core_path: "{{ document_root }}/core/"
+context_mgr_path: "{{ document_root }}/manager/"
+context_mgr_url: /manager/
+context_connectors_path: "{{ document_root }}/connectors/"
+context_connectors_url: /connectors/
+context_web_path: "{{ document_root }}/"
+context_web_url: /
+remove_setup_directory: 1

@@ -1,0 +1,11 @@
+---
+- hosts: all
+  sudo: true
+  vars:
+    document_root: /var/vhost/modx
+  pre_tasks:
+    - name: Update apt cache
+      apt: update_cache=yes
+  roles:
+    - database
+    - webserver

@@ -1,0 +1,25 @@
+---
+- name: Clone gitify from github
+  git:
+    repo: https://github.com/modmore/Gitify.git
+    dest: /usr/local/src/gitify
+
+- name: Install gitify and its dependencies using composer
+  command: composer install
+  args:
+    chdir: /usr/local/src/gitify
+
+- name: Symlink gitify into VM /usr/local/bin
+  file:
+    src: /usr/local/src/gitify/Gitify
+    dest: /usr/local/bin/gitify
+    state: link
+
+- name: Copy across gitify config file
+  template: src=gitify.j2 dest={{ document_root }}/.gitify
+
+- name: Symlink gitify directories into document root
+  file: src=/vagrant/{{ item.src }} dest={{ document_root }}/{{ item.dest }} state=link
+  with_items:
+    - { src: modx, dest: _data }
+    - { src: _backup, dest: _backup }
